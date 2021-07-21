@@ -28,8 +28,33 @@ func handleRequests() {
 	router.HandleFunc("/articles", returnAllArticles)
 	router.HandleFunc("/article", createNewArticle).Methods("POST")
 	router.HandleFunc("/article/{id}", deleteArticle).Methods("DELETE")
+	router.HandleFunc("/article/{id}", updateArticle).Methods("PUT")
 	router.HandleFunc("/article/{id}", returnSingleArticle)
-	log.Fatal(http.ListenAndServe(":4900", router))
+	log.Fatal(http.ListenAndServe(":5100", router))
+}
+
+func updateArticle(w http.ResponseWriter, r *http.Request) {
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	vars := mux.Vars(r)
+	id := vars["id"]
+	var updatedArticle Article
+	json.Unmarshal(reqBody, &updatedArticle)
+	for _, article := range Articles {
+		if article.Id == id {
+			article.Title = updatedArticle.Title
+			article.Desc = updatedArticle.Desc
+			article.Content = updatedArticle.Content
+		}
+	}
+}
+
+func createNewArticle(w http.ResponseWriter, r *http.Request) {
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	// fmt.Fprintf(w, "%+v", string(reqBody))
+	var article Article
+	json.Unmarshal(reqBody, &article)
+	Articles = append(Articles, article)
+	json.NewEncoder(w).Encode(article)
 }
 
 func returnAllArticles(w http.ResponseWriter, r *http.Request) {
@@ -57,15 +82,6 @@ func deleteArticle(w http.ResponseWriter, r *http.Request) {
 			Articles = append(Articles[:index], Articles[index+1:]...)
 		}
 	}
-}
-
-func createNewArticle(w http.ResponseWriter, r *http.Request) {
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	// fmt.Fprintf(w, "%+v", string(reqBody))
-	var article Article
-	json.Unmarshal(reqBody, &article)
-	Articles = append(Articles, article)
-	json.NewEncoder(w).Encode(article)
 }
 
 var Articles []Article
