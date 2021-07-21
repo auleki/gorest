@@ -26,7 +26,7 @@ func handleRequests() {
 	router.HandleFunc("/", homePage)
 	router.HandleFunc("/all", returnAllArticles)
 	router.HandleFunc("/article/{id}", returnSingleArticle)
-	log.Fatal(http.ListenAndServe(":4000", router))
+	log.Fatal(http.ListenAndServe(":4200", router))
 }
 
 func returnAllArticles(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +38,11 @@ func returnSingleArticle(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key := vars["id"]
 
-	fmt.Fprintf(w, "Key: "+key)
+	for _, article := range Articles {
+		if article.Id == key {
+			json.NewEncoder(w).Encode(article)
+		}
+	}
 }
 
 var Articles []Article
